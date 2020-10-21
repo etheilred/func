@@ -1,0 +1,92 @@
+_digit 	: '0'-'9' ;
+int64 	: '1'-'9' {_digit} | '0';
+
+_startId : 'a'-'z' | 'A'-'Z' ;
+_midId : _startId | _digit ;
+fn : 'f' 'n' ;
+let: 'l' 'e' 't';
+if : 'i' 'f' ;
+then : 't' 'h' 'e' 'n' ;
+else : 'e' 'l' 's' 'e' ;
+id : _startId {_midId} ;
+gt : '>' ;
+lt : '<' ;
+eq : '=' '=' ;
+le : '<' '=' ;
+ge : '>' '=' ;
+ne : '!' '=' ;
+assign : '=' ;
+arrow : '=' '>' ;
+
+!whitespace : ' ' | '\n' | '\r' | '\t' ;
+
+<< 
+	import (
+		"func/ast"
+	)
+>>
+
+StmtList :
+		StmtList Stmt << ast.AppendStmtListNode($0, $1) >>
+	|	Stmt << ast.NewStmtListNode($0) >>
+;
+
+Stmt :
+		ExprList ";" << ast.NewStmtNode($0) >>
+	|	Func ";" << ast.NewStmtNode($0) >>
+;
+
+Func : 
+		fn id Params arrow ExprList << ast.NewFuncNode($1, $2, $4) >>
+	|	fn id arrow ExprList << ast.NewFuncNode($1, nil, $3)>>
+;
+
+Params :
+		Params id << ast.AppendParamsNode($0, $1) >>
+	| 	id << ast.NewParamsNode($0) >>
+;
+
+ExprList :
+		ExprList "," Expr << ast.NewExprList($0, $2) >>
+	|	Expr << ast.NewExprList(nil, $0) >> 
+;
+
+Expr : 
+		T1 << $0, nil >> 
+	| Local << $0, nil >> 
+	| IfExpr << $0, nil >>
+;
+
+IfExpr :
+	if RelExpr then Expr else Expr << ast.NewIfNode($1, $3, $5) >>
+;
+
+RelExpr :
+		Expr gt Expr << ast.NewGtNode($0, $2) >>
+	|	Expr lt Expr << ast.NewLtNode($0, $2) >>
+	| 	Expr eq Expr << ast.NewEqNode($0, $2) >>
+	|	Expr le Expr << ast.NewLeNode($0, $2) >>
+	|	Expr ge Expr << ast.NewGeNode($0, $2) >>
+	| 	Expr ne Expr << ast.NewNeNode($0, $2) >>
+;
+
+Local : let id assign T1 << ast.NewLocalNode($1, $3) >>;
+
+T1	: 
+		T1 "+" T2 << ast.NewAddNode($0, $2) >> 
+	|	T1 "-" T2 << ast.NewSubNode($0, $2) >> 
+	|	T2 << $0, nil >>
+;
+
+T2 :
+		T2 "*" Factor << ast.NewMulNode($0, $2) >>
+	|	T2 "/" Factor << ast.NewDivNode($0, $2) >>
+	|	Factor << $0, nil >>
+;
+
+Factor :
+		"(" Expr ")" << $1, nil >> 
+	|	int64 << ast.NewInt64($0) >>
+	|	id << ast.NewVarNode($0) >>
+	|	id "(" ExprList ")" << ast.NewFuncCallNode($0, $2) >>
+;
