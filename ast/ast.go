@@ -146,6 +146,11 @@ func NewIfNode(cond, t, f Attrib) (Attrib, error) {
 	}, nil
 }
 
+// NewUnaryMinusNode creates new negation node
+func NewUnaryMinusNode(expr Attrib) (Attrib, error) {
+	return &UnaryMinusNode{expr.(Evaluator)}, nil
+}
+
 // Evaluator used to evaluate ast
 type Evaluator interface {
 	Evaluate() int64
@@ -493,4 +498,18 @@ func (e *IfNode) Evaluate() int64 {
 
 func (e *IfNode) String() string {
 	return fmt.Sprintf("(if %s (then %s) (else %s))", e.Condition.String(), e.TrueFlow.String(), e.FalseFlow.String())
+}
+
+// UnaryMinusNode represents negation
+type UnaryMinusNode struct {
+	Expr Evaluator
+}
+
+// Evaluate evaluates negation
+func (e *UnaryMinusNode) Evaluate() int64 {
+	return -e.Expr.Evaluate()
+}
+
+func (e *UnaryMinusNode) String() string {
+	return fmt.Sprintf("(- %s)", e.Expr.String())
 }

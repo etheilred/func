@@ -342,4 +342,24 @@ var productionsTable = ProdTab{
 			return ast.NewFuncCallNode(X[0], X[2])
 		},
 	},
+	ProdTabEntry{
+		String: `Factor : Unary	<< X[0], nil >>`,
+		Id:         "Factor",
+		NTType:     12,
+		Index:      32,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib) (Attrib, error) {
+			return X[0], nil
+		},
+	},
+	ProdTabEntry{
+		String: `Unary : "-" Factor	<< ast.NewUnaryMinusNode(X[1]) >>`,
+		Id:         "Unary",
+		NTType:     13,
+		Index:      33,
+		NumSymbols: 2,
+		ReduceFunc: func(X []Attrib) (Attrib, error) {
+			return ast.NewUnaryMinusNode(X[1])
+		},
+	},
 }

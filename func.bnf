@@ -1,8 +1,9 @@
 _digit 	: '0'-'9' ;
-int64 	: '1'-'9' {_digit} | '0';
+_int64 	: '1'-'9' {_digit} ;
+int64 	: _int64 | '0' ;
 
-_startId : 'a'-'z' | 'A'-'Z' ;
-_midId : _startId | _digit ;
+_startId : 'a'-'z' | 'A'-'Z' | '_' ;
+_midId : _startId | _digit | '_' ;
 fn : 'f' 'n' ;
 let: 'l' 'e' 't';
 if : 'i' 'f' ;
@@ -89,4 +90,9 @@ Factor :
 	|	int64 << ast.NewInt64($0) >>
 	|	id << ast.NewVarNode($0) >>
 	|	id "(" ExprList ")" << ast.NewFuncCallNode($0, $2) >>
+	| 	Unary << $0, nil >>
+;
+
+Unary :
+	"-" Factor << ast.NewUnaryMinusNode($1) >>
 ;
